@@ -278,6 +278,7 @@ ul {
   gap: 0;
   padding: 0;
   animation: heroVisualScroll 32s linear infinite;
+  will-change: transform;
 }
 
 .hero-visual-track img {
@@ -286,6 +287,7 @@ ul {
   height: auto;
   filter: grayscale(1);
   transition: filter 260ms ease;
+  backface-visibility: hidden;
 }
 
 .hero-visual-stream:hover .hero-visual-track img {
