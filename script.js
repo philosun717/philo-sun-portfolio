@@ -2,6 +2,7 @@
 const WORK_MODAL_TRANSITION_MS = 380;
 let workModalCloseTimer = null;
 let activeWorkIndex = null;
+const worksMobileQuery = window.matchMedia("(max-width: 767px)");
 
 const vibecodingProjects = [
   {
@@ -240,6 +241,34 @@ const archiveCategoryLabelsCn = {
   TYPOGRAPHY: "\u6392\u7248",
   WAYFINDING: "\u5bfc\u89c6",
   EXHIBITION: "\u5c55\u89c8",
+};
+
+const archiveSectionCopy = {
+  "IP IMAGE": {
+    title: "IP Image",
+    en: "Character images and visual extensions for narrative brand communication.",
+    cn: "\u56f4\u7ed5\u89d2\u8272\u5f62\u8c61\u4e0e\u89c6\u89c9\u5ef6\u5c55\u6784\u5efa\u7684\u54c1\u724c\u53d9\u4e8b\u8868\u8fbe\u3002",
+  },
+  "PROMOTIONAL MATERIALS": {
+    title: "Promotion",
+    en: "Posters, campaign materials and spatial graphics for public communication.",
+    cn: "\u7528\u4e8e\u6d3b\u52a8\u4f20\u64ad\u3001\u5546\u4e1a\u63a8\u5e7f\u4e0e\u516c\u5171\u7a7a\u95f4\u6c9f\u901a\u7684\u5ba3\u4f20\u7269\u6599\u3002",
+  },
+  TYPOGRAPHY: {
+    title: "Typography",
+    en: "Editorial layouts, brochures and typographic systems across print and digital media.",
+    cn: "\u6db5\u76d6\u753b\u518c\u3001\u7248\u5f0f\u7cfb\u7edf\u4e0e\u56fe\u6587\u4fe1\u606f\u7ec4\u7ec7\u7684\u6392\u7248\u8bbe\u8ba1\u3002",
+  },
+  WAYFINDING: {
+    title: "Wayfinding",
+    en: "Signage systems and spatial information design for clear navigation.",
+    cn: "\u9762\u5411\u7a7a\u95f4\u8bc6\u522b\u3001\u8def\u5f84\u5f15\u5bfc\u4e0e\u4fe1\u606f\u4f20\u8fbe\u7684\u5bfc\u89c6\u7cfb\u7edf\u8bbe\u8ba1\u3002",
+  },
+  EXHIBITION: {
+    title: "Exhibition",
+    en: "Exhibition visuals and image systems shaped for cultural display contexts.",
+    cn: "\u9762\u5411\u5c55\u89c8\u73b0\u573a\u4e0e\u6587\u5316\u5c55\u793a\u573a\u666f\u7684\u89c6\u89c9\u7cfb\u7edf\u3002",
+  },
 };
 
 const logoArchive = [
@@ -640,6 +669,12 @@ function renderWorks() {
     card.prepend(visual);
     card.addEventListener("click", (event) => {
       event.stopPropagation();
+      if (worksMobileQuery.matches) {
+        activeWorkIndex = null;
+        positionWorksCards();
+        openWorkModal(project.id);
+        return;
+      }
       if (activeWorkIndex !== index) {
         activeWorkIndex = index;
         positionWorksCards();
@@ -672,7 +707,10 @@ function positionWorksCards() {
   if (!grid || !items.length) return;
 
   const gridWidth = grid.clientWidth;
-  const isMobile = window.matchMedia("(max-width: 767px)").matches;
+  const isMobile = worksMobileQuery.matches;
+  if (isMobile && activeWorkIndex !== null) {
+    activeWorkIndex = null;
+  }
   const hasSelection = activeWorkIndex !== null;
   const gap = Math.min(24, Math.max(12, gridWidth * 0.018));
   const cardWidth = isMobile ? gridWidth : Math.min(310, Math.max(228, gridWidth * 0.25));
@@ -917,6 +955,22 @@ function renderArchiveFilter() {
   });
 }
 
+function createArchiveSectionHeading(type) {
+  const copy = archiveSectionCopy[type] || {
+    title: archiveCategoryLabelsEn[type] || type,
+    en: "A selected archive of visual studies and design explorations.",
+    cn: "\u7cbe\u9009\u89c6\u89c9\u7814\u7a76\u4e0e\u8bbe\u8ba1\u63a2\u7d22\u6863\u6848\u3002",
+  };
+  const heading = document.createElement("header");
+  heading.className = "archive-section-heading";
+  heading.innerHTML = `
+    <h3>${copy.title}</h3>
+    <p>${copy.en}</p>
+    <p class="cn-copy">${copy.cn}</p>
+  `;
+  return heading;
+}
+
 function renderArchive(activeCategory = "ALL") {
   const wall = document.querySelector("#logoWall");
   const logoFeature = document.querySelector(".logo-archive-feature");
@@ -951,9 +1005,7 @@ function renderArchive(activeCategory = "ALL") {
     if (!items.length) return;
     const group = document.createElement("section");
     group.className = "archive-group";
-    const title = document.createElement("h3");
-    title.className = "archive-group__title";
-    title.textContent = archiveCategoryLabelsEn[type] || type;
+    const heading = createArchiveSectionHeading(type);
     const grid = document.createElement("div");
     grid.className = `archive-group__grid archive-group__grid--${type.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -975,7 +1027,7 @@ function renderArchive(activeCategory = "ALL") {
       items.forEach((item) => grid.appendChild(makeArchiveTile(item)));
     }
 
-    group.append(title, grid);
+    group.append(heading, grid);
     masonry.appendChild(group);
   };
 
@@ -1027,30 +1079,43 @@ function bindArchivePromoRowImages() {
   window.requestAnimationFrame(updateArchivePromoRows);
 }
 
-function logoSizeToPx(size) {
-  return {
+function logoSizeToPx(size, compact = false) {
+  const desktopSizes = {
     small: 82,
     medium: 105,
     large: 132,
     wide: 150,
     tall: 138,
     hero: 190,
-  }[size] || 105;
+  };
+  const compactSizes = {
+    small: 66,
+    medium: 80,
+    large: 94,
+    wide: 104,
+    tall: 92,
+    hero: 116,
+  };
+  return (compact ? compactSizes : desktopSizes)[size] || (compact ? 80 : 105);
 }
 
 function logoTrackItem(logo, index, cycleOffset = 0) {
   const item = document.createElement("button");
-  const rowPositions = [36, 156, 262, 382];
-  const rowPattern = [2, 0, 3, 1, 2, 0, 1, 3, 0, 2, 1, 3, 2, 0, 3, 1];
-  const spacing = 166;
+  const isCompact = window.matchMedia("(max-width: 760px)").matches;
+  const rowPositions = isCompact ? [34, 126, 220, 314] : [36, 156, 262, 382];
+  const rowPattern = isCompact
+    ? [1, 3, 0, 2, 1, 3, 2, 0, 1, 2, 3, 0]
+    : [2, 0, 3, 1, 2, 0, 1, 3, 0, 2, 1, 3, 2, 0, 3, 1];
+  const spacing = isCompact ? 98 : 166;
   const row = rowPattern[index % rowPattern.length];
-  const yOffset = [0, 12, -8, 6, -14, 4, 10, -4][index % 8];
-  const xOffset = [0, 18, 34, 8, 28, 44, 14, 38][index % 8];
-  const visualSize = logoSizeToPx(logo.size);
+  const yOffset = (isCompact ? [0, 8, -6, 5, -8, 6] : [0, 12, -8, 6, -14, 4, 10, -4])[index % (isCompact ? 6 : 8)];
+  const xOffset = (isCompact ? [0, 12, 24, 6, 18, 30] : [0, 18, 34, 8, 28, 44, 14, 38])[index % (isCompact ? 6 : 8)];
+  const visualSize = logoSizeToPx(logo.size, isCompact);
+  const startX = isCompact ? 30 : 48;
 
   item.type = "button";
   item.className = `logo-drift-item logo-drift-item--${logo.size || "medium"}`;
-  item.style.setProperty("--x", `${48 + cycleOffset + index * spacing + xOffset}px`);
+  item.style.setProperty("--x", `${startX + cycleOffset + index * spacing + xOffset}px`);
   item.style.setProperty("--y", `${(rowPositions[row] || rowPositions[0]) + yOffset}px`);
   item.style.setProperty("--r", `${logo.rotate || 0}deg`);
   item.style.setProperty("--s", `${visualSize}px`);
@@ -1071,7 +1136,9 @@ function logoTrackItem(logo, index, cycleOffset = 0) {
 
 function renderLogoWall(wall) {
   const wallLogos = logoArchive;
-  const cycleWidth = wallLogos.length * 166 + 220;
+  const isCompact = window.matchMedia("(max-width: 760px)").matches;
+  const logoSpacing = isCompact ? 98 : 166;
+  const cycleWidth = wallLogos.length * logoSpacing + (isCompact ? 130 : 220);
   const trackWidth = cycleWidth * 2;
   const inner = document.createElement("div");
   inner.className = "logo-flow";
@@ -1153,6 +1220,7 @@ function createLogoDetailModal() {
   modal.innerHTML = `
     <div class="logo-detail-modal__overlay" data-logo-detail-close></div>
     <button class="logo-detail-modal__close" type="button" data-logo-detail-close aria-label="Close logo detail">×</button>
+    <button class="logo-detail-modal__top" type="button" data-logo-detail-top aria-label="Back to top">↑</button>
     <section class="logo-detail-modal__panel" role="dialog" aria-modal="true" aria-labelledby="logoDetailTitle">
       <div class="logo-detail-modal__body" id="logoDetailBody"></div>
     </section>
@@ -1296,6 +1364,7 @@ function createArchiveItemModal() {
   modal.innerHTML = `
     <div class="archive-item-modal__overlay" data-archive-item-close></div>
     <button class="archive-item-modal__close" type="button" data-archive-item-close aria-label="Close archive image">×</button>
+    <button class="archive-item-modal__top" type="button" data-archive-item-top aria-label="Back to top">↑</button>
     <section class="archive-item-modal__panel" role="dialog" aria-modal="true" aria-labelledby="archiveItemTitle">
       <div class="archive-item-modal__body" id="archiveItemBody"></div>
     </section>
@@ -1389,6 +1458,18 @@ function initLogoModal() {
     if (visWorkTrigger) openLogoRelatedWork(visWorkTrigger.dataset.logoVisWork);
     if (event.target.matches("[data-logo-modal-top]")) {
       document.querySelector("#logoModalBody")?.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+    if (event.target.matches("[data-logo-detail-top]")) {
+      document.querySelector("#logoDetailBody")?.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+    if (event.target.matches("[data-archive-item-top]")) {
+      document.querySelector("#archiveItemBody")?.scrollTo({
         top: 0,
         behavior: "smooth",
       });
