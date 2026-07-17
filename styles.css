@@ -1420,8 +1420,7 @@ ul {
 }
 
 .archive-filter {
-  position: sticky;
-  top: calc(var(--nav-height) + 28px);
+  position: static;
   display: grid;
   gap: 0;
   border-top: 1px solid var(--ink);
@@ -2743,6 +2742,28 @@ ul {
 
   .contact-cards {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 761px) {
+  main {
+    overflow: visible;
+  }
+
+  .archive-layout {
+    grid-template-columns: clamp(220px, 18vw, 280px) minmax(0, 1fr);
+  }
+
+  .archive-filter {
+    position: sticky;
+    top: calc(var(--nav-height) + 28px);
+    align-self: start;
+    z-index: 2;
+  }
+
+  .logo-archive-feature,
+  .archive-group {
+    scroll-margin-top: calc(var(--nav-height) + 32px);
   }
 }
 

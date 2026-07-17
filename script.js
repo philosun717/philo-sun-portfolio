@@ -3,6 +3,7 @@ const WORK_MODAL_TRANSITION_MS = 380;
 let workModalCloseTimer = null;
 let activeWorkIndex = null;
 const worksMobileQuery = window.matchMedia("(max-width: 767px)");
+const archiveDesktopQuery = window.matchMedia("(min-width: 761px)");
 
 const vibecodingProjects = [
   {
@@ -936,6 +937,81 @@ function renderLab() {
   });
 }
 
+let archiveScrollRaf = null;
+
+function getArchiveSectionId(category) {
+  return `archive-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
+function getArchiveScrollTarget(category) {
+  if (category === "ALL") return document.querySelector("#archive");
+  if (category === "LOGO") return document.querySelector(".logo-archive-feature");
+  return document.querySelector(`[data-archive-section="${category}"]`);
+}
+
+function setArchiveActive(category) {
+  document.querySelectorAll(".archive-filter button").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.category === category);
+  });
+}
+
+function updateArchiveActiveByScroll() {
+  if (!archiveDesktopQuery.matches) return;
+
+  const archive = document.querySelector("#archive");
+  if (!archive) return;
+
+  const archiveRect = archive.getBoundingClientRect();
+  if (archiveRect.bottom < 120 || archiveRect.top > window.innerHeight - 120) return;
+
+  const guideLine = Math.min(Math.max(window.innerHeight * 0.36, 150), window.innerHeight - 140);
+  const sections = archiveCategories
+    .filter((category) => category !== "ALL")
+    .map((category) => ({ category, element: getArchiveScrollTarget(category) }))
+    .filter(({ element }) => element);
+
+  if (!sections.length) return;
+
+  const firstRect = sections[0].element.getBoundingClientRect();
+  let activeCategory = firstRect.top > guideLine ? "ALL" : sections[0].category;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  sections.forEach(({ category, element }) => {
+    const rect = element.getBoundingClientRect();
+    if (rect.bottom < 120 || rect.top > window.innerHeight - 80) return;
+
+    const containsGuide = rect.top <= guideLine && rect.bottom >= guideLine;
+    const distance = containsGuide ? 0 : Math.abs(rect.top - guideLine);
+
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      activeCategory = category;
+    }
+  });
+
+  setArchiveActive(activeCategory);
+}
+
+function handleArchiveScrollSpy() {
+  if (!archiveDesktopQuery.matches || archiveScrollRaf) return;
+
+  archiveScrollRaf = window.requestAnimationFrame(() => {
+    archiveScrollRaf = null;
+    updateArchiveActiveByScroll();
+  });
+}
+
+function initArchiveScrollSpy() {
+  window.removeEventListener("scroll", handleArchiveScrollSpy);
+  window.removeEventListener("resize", handleArchiveScrollSpy);
+
+  if (!archiveDesktopQuery.matches) return;
+
+  window.addEventListener("scroll", handleArchiveScrollSpy, { passive: true });
+  window.addEventListener("resize", handleArchiveScrollSpy);
+  updateArchiveActiveByScroll();
+}
+
 function renderArchiveFilter() {
   const filter = document.querySelector("#archiveFilter");
   filter.innerHTML = "";
@@ -943,10 +1019,20 @@ function renderArchiveFilter() {
   archiveCategories.forEach((category) => {
     const button = document.createElement("button");
     button.type = "button";
+    button.dataset.category = category;
     button.dataset.cn = archiveCategoryLabelsCn[category] || category;
     button.innerHTML = `<span>${archiveCategoryLabelsEn[category] || category}</span>`;
     button.className = category === "ALL" ? "is-active" : "";
     button.addEventListener("click", () => {
+      if (archiveDesktopQuery.matches) {
+        const target = getArchiveScrollTarget(category);
+        if (!target) return;
+
+        setArchiveActive(category);
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
       document.querySelectorAll(".archive-filter button").forEach((item) => item.classList.remove("is-active"));
       button.classList.add("is-active");
       renderArchive(category);
@@ -976,13 +1062,16 @@ function renderArchive(activeCategory = "ALL") {
   const logoFeature = document.querySelector(".logo-archive-feature");
   const viewAllLogos = document.querySelector("#viewAllLogos");
   const masonry = document.querySelector("#archiveMasonry");
-  const showLogos = activeCategory === "ALL" || activeCategory === "LOGO";
+  const isDesktop = archiveDesktopQuery.matches;
+  const showLogos = isDesktop || activeCategory === "ALL" || activeCategory === "LOGO";
   const filteredItems =
-    activeCategory === "ALL" ? archiveItems : archiveItems.filter((item) => item.type === activeCategory);
+    isDesktop || activeCategory === "ALL" ? archiveItems : archiveItems.filter((item) => item.type === activeCategory);
 
   wall.innerHTML = "";
   masonry.innerHTML = "";
   logoFeature.hidden = !showLogos;
+  logoFeature.dataset.archiveSection = "LOGO";
+  logoFeature.id = getArchiveSectionId("LOGO");
   viewAllLogos.hidden = !showLogos;
 
   if (showLogos) renderLogoWall(wall);
@@ -1005,6 +1094,8 @@ function renderArchive(activeCategory = "ALL") {
     if (!items.length) return;
     const group = document.createElement("section");
     group.className = "archive-group";
+    group.dataset.archiveSection = type;
+    group.id = getArchiveSectionId(type);
     const heading = createArchiveSectionHeading(type);
     const grid = document.createElement("div");
     grid.className = `archive-group__grid archive-group__grid--${type.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -1031,7 +1122,7 @@ function renderArchive(activeCategory = "ALL") {
     masonry.appendChild(group);
   };
 
-  if (activeCategory === "ALL") {
+  if (isDesktop || activeCategory === "ALL") {
     archiveCategories
       .filter((category) => category !== "ALL" && category !== "LOGO")
       .forEach((category) => renderArchiveGroup(category, archiveItems.filter((item) => item.type === category)));
@@ -1041,6 +1132,7 @@ function renderArchive(activeCategory = "ALL") {
 
   bindArchivePromoRowImages();
   updateArchivePromoRows();
+  initArchiveScrollSpy();
   observeRevealItems();
 }
 
@@ -1559,6 +1651,7 @@ initWorksStackInteractions();
 initWorkModal();
 renderLab();
 renderArchiveFilter();
+archiveDesktopQuery.addEventListener("change", () => renderArchive());
 renderArchive();
 initLogoModal();
 initNavigation();
