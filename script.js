@@ -701,25 +701,31 @@ function positionWorksCards() {
 
   items.forEach((item, index) => {
     const slot = fan[index] || fan[fan.length - 1];
-    let width = cardWidth;
+    const baseWidth = cardWidth;
+    const baseHeight = cardHeight;
     let x = 0;
     let y = index * (cardHeight + gap);
     let rotate = 0;
     let scale = 1;
+    let visualWidth = baseWidth;
+    let visualHeight = baseHeight;
 
     if (!isMobile && hasSelection) {
       const isActive = index === activeWorkIndex;
-      width = isActive ? focusWidth : thumbWidth;
-      const activeX = (gridWidth - focusWidth) / 2;
+      visualWidth = isActive ? focusWidth : thumbWidth;
+      visualHeight = visualWidth * 210 / 297;
+      scale = visualWidth / baseWidth;
+      const activeX = (gridWidth - visualWidth) / 2;
       const activeY = Math.max(12, gridHeight * 0.08);
       const thumbStep = thumbWidth * 0.56;
       const thumbBandWidth = thumbWidth + thumbStep * (items.length - 1);
       const thumbOrigin = (gridWidth - thumbBandWidth) / 2;
 
-      x = isActive ? activeX : thumbOrigin + index * thumbStep;
-      y = isActive ? activeY : activeY + focusHeight * 0.86;
+      const targetX = isActive ? activeX : thumbOrigin + index * thumbStep;
+      const targetY = isActive ? activeY : activeY + focusHeight * 0.86;
+      x = targetX - (baseWidth - visualWidth) / 2;
+      y = targetY - (baseHeight - visualHeight) / 2;
       rotate = isActive ? slot.r * 0.25 : slot.r;
-      scale = isActive ? 1 : 0.9;
     } else if (!isMobile) {
       const fanStep = cardWidth * 0.68;
       const fanWidth = cardWidth + fanStep * (items.length - 1);
@@ -729,11 +735,10 @@ function positionWorksCards() {
       rotate = slot.r;
     }
 
-    const effectiveHeight = width * 210 / 297;
     item.classList.toggle("is-active-work", hasSelection && index === activeWorkIndex);
-    item.style.setProperty("--work-card-w", `${width}px`);
-    item.style.setProperty("--work-x", `${Math.min(gridWidth - width, Math.max(0, x))}px`);
-    item.style.setProperty("--work-y", `${Math.min(gridHeight - effectiveHeight, Math.max(0, y))}px`);
+    item.style.setProperty("--work-card-w", `${baseWidth}px`);
+    item.style.setProperty("--work-x", `${Math.min(gridWidth - visualWidth, Math.max(0, x))}px`);
+    item.style.setProperty("--work-y", `${Math.min(gridHeight - visualHeight, Math.max(0, y))}px`);
     item.style.setProperty("--work-scale", String(scale));
     item.style.setProperty("--work-rotate", isMobile ? "0deg" : `${rotate}deg`);
     item.style.setProperty("--stack-z", String(items.length - index));

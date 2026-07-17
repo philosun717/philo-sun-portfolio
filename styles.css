@@ -674,14 +674,15 @@ ul {
   transform-origin: center;
   transform:
     translate3d(var(--work-x, 0px), calc(var(--work-y, 0px) + var(--work-lift, 0px) + var(--work-wave, 0px)), 0)
-    scale(var(--work-scale, 1))
-    rotate(var(--work-rotate, 0deg));
+    rotate(var(--work-rotate, 0deg))
+    scale(var(--work-scale, 1));
   z-index: var(--stack-z, 1);
+  contain: layout paint;
+  will-change: transform;
   animation: workCoverWave 3s ease-in-out infinite;
   animation-delay: var(--work-wave-delay, 0ms);
   transition:
-    width 560ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 560ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 220ms ease,
     box-shadow 220ms ease;
   box-shadow: 0 20px 58px rgba(0, 0, 0, 0.08);
@@ -904,12 +905,13 @@ ul {
   transform-origin: center;
   transform:
     translate3d(var(--work-x, 0px), var(--work-y, 0px), 0)
-    scale(var(--work-scale, 1))
-    rotate(var(--work-rotate, 0deg));
+    rotate(var(--work-rotate, 0deg))
+    scale(var(--work-scale, 1));
   z-index: var(--stack-z, 1);
+  contain: layout paint;
+  will-change: transform;
   transition:
-    width 560ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 560ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 220ms ease,
     box-shadow 220ms ease;
   box-shadow: 0 20px 58px rgba(0, 0, 0, 0.06);
