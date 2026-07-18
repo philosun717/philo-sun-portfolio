@@ -3036,7 +3036,7 @@ ul {
     overflow-x: hidden;
     padding-right: 12px;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: auto;
   }
 
   .academic-item {
