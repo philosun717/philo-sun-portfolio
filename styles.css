@@ -2648,7 +2648,7 @@ ul {
 }
 
 .contact-card::after {
-  content: "Copied";
+  content: "已复制";
   position: absolute;
   right: 12px;
   top: 10px;
@@ -2752,6 +2752,17 @@ ul {
 @media (min-width: 761px) {
   main {
     overflow: visible;
+  }
+
+  .contact {
+    min-height: calc(100svh - var(--nav-height) - 72px);
+    display: grid;
+    align-items: center;
+    padding: 0 var(--gutter);
+  }
+
+  .contact-panel {
+    width: 100%;
   }
 
   .archive-layout {
