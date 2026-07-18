@@ -1217,6 +1217,10 @@ ul {
   color: var(--white);
 }
 
+.lab .section-kicker {
+  color: var(--white);
+}
+
 .lab-shell {
   padding-top: var(--space-section);
   padding-bottom: var(--space-section);
