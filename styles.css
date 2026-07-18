@@ -3057,6 +3057,10 @@ ul {
     font-size: clamp(34px, 9vw, 54px);
   }
 
+  .lab .section-kicker {
+    color: #fff !important;
+  }
+
   .lab-item {
     grid-template-columns: none;
     grid-template-rows: auto minmax(220px, auto);
