@@ -2671,7 +2671,7 @@ ul {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 24px;
+  gap: 4px 24px;
   padding: 26px var(--gutter);
   border-top: 1px solid var(--line);
   color: var(--muted);
@@ -2687,6 +2687,34 @@ ul {
 
 .site-footer a:hover {
   color: var(--ink);
+}
+
+.site-footer__copyright {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.site-footer > a[href="https://beian.miit.gov.cn/"] {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.site-footer__police {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-align: right;
+}
+
+.site-footer__police img {
+  width: 17px;
+  height: 19px;
+  display: block;
+  object-fit: contain;
 }
 
 [data-reveal],
@@ -3357,14 +3385,19 @@ ul {
   }
 
   .site-footer {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 4px 12px;
     padding: 16px var(--gutter);
     font-size: 10px;
     letter-spacing: 0.04em;
     line-height: 1.2;
+  }
+
+  .site-footer__police {
+    grid-column: 2;
+    justify-self: end;
   }
 
 }
